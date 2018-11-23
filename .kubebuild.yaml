@@ -27,12 +27,6 @@ spec:
     - name: helmOutputIstiofile
       value: helm-istio.yaml
   templates:
-  - name: isFeature
-    script:
-      image: alpine
-      command: [sh]
-      source: |
-        if [[ "{{workflow.parameters.branch}}" == feature/* ]] ; then echo yes ; else echo no ; fi
   - name: ci-dind
     inputs:
       artifacts:
@@ -216,8 +210,6 @@ spec:
         arguments:
           parameters: [{name: image, value: cloudhero/go-test},
                         {name: port, value: 8080}]
-    - - name: isFeature
-        template: isFeature
     - - name: deploy
         template: deploy
-        when: "{{steps.isFeature.outputs.result}} == no"
+        when: "{{workflow.parameters.branch}} == master"
