@@ -3,13 +3,16 @@ kind: Workflow
 metadata:
   generateName: go-test-pipeline-
 spec:
+  # Use his secret to pull images.
   imagePullSecrets:
   - name: dockerhub
+  # Git secret to clone the code from a remote repository.
   volumes:
   - name: git-secret
     secret:
       secretName: git-secret
       defaultMode: 256
+  # Volume for the Docker secret which will be used to push images to a remote repository.
   - name: docker-volume
     secret:
       secretName: "{{workflow.parameters.dockerSecretName}}"
@@ -17,7 +20,11 @@ spec:
       items:
       - key: .dockerconfigjson
         path: config.json
+  # Entrypoint is the template which will run when this workflow is called.
   entrypoint: go-test-pipeline
+  # These are the workflow arguments, which are global arguments that are used in all templates.
+  # Kubebuild also injects some workflow variables:
+  # https://docs.kubebuild.com/default-params
   arguments:
     parameters:
     - name: dockerSecretName
@@ -26,7 +33,11 @@ spec:
       value: helm.yaml
     - name: helmOutputIstiofile
       value: helm-istio.yaml
+  # Below are templates from each operation.
   templates:
+  # This is the template used for building and pushing Docker Images to a Docker repo.
+  # INPUTS:
+  # - image: Image name
   - name: ci-dind
     inputs:
       artifacts:
@@ -67,6 +78,12 @@ spec:
       securityContext:
         privileged: true
       mirrorVolumeMounts: true
+  # This template is used to create files from the interpolation of the helm templates and custom values.
+  # INPUTS:
+  # - additionalParameters: multiple pairs of parameters described by --set flags.
+  # - image: Docker image name (can be blank for Istio templates)
+  # - helmFolder: The name of the folder from where helm will generate the finished file.
+  # - outputName: the name of the file which helm will generate.
   - name: helm-template
     inputs:
       parameters:
@@ -99,10 +116,12 @@ spec:
       - name: OUTPUT_NAME
         value: "{{inputs.parameters.outputName}}"
       workingDir: /code
+  # It uploads the resulting file to S3 as an artifact.
     outputs:
       artifacts:
       - name: helmResult
         path: "/code/{{inputs.parameters.outputName}}"
+  # This template uses kubectl to deploy to Kubernetes.
   - name: kubectl
     inputs:
       artifacts:
@@ -116,6 +135,7 @@ spec:
       - name: KUBEFILE
         value: "{{workflow.parameters.helmOutputKubefile}}"
       workingDir: /code
+  # This template uses istio to deploy the Istio files.
   - name: istioctl
     inputs:
       artifacts:
@@ -129,6 +149,7 @@ spec:
       - name: ISTIOFILE
         value: "{{workflow.parameters.helmOutputIstiofile}}"
       workingDir: /code
+  # Running a container using the finished image.
   - name: go-test-server
     inputs:
       parameters:
@@ -139,6 +160,7 @@ spec:
       image: "{{inputs.parameters.image}}"
       ports:
       - containerPort: 8080
+  # Curl container to send some requests to our application.
   - name: go-test-client
     inputs:
       parameters:
@@ -151,6 +173,7 @@ spec:
         requests:
           memory: 32Mi
           cpu: 100m
+  # Template which encompasses the server and client from above.
   - name: e2e-test
     inputs:
       parameters:
@@ -171,6 +194,7 @@ spec:
           parameters:
           - name: cmd
             value: curl -XGET 'http://{{steps.go-test-server.ip}}:{{inputs.parameters.port}}'
+  # Tempalate which encomposes helm, kubectl and Istio to make the full deployment.
   - name: deploy
     steps:
     - - name: helm-kubectl
@@ -199,6 +223,7 @@ spec:
           artifacts:
           - name: istiofile
             from: "{{steps.helm-istio.outputs.artifacts.helmResult}}"
+  # The entrypoint which runs all the pipeline.
   - name: go-test-pipeline
     steps:
     - - name: build
@@ -212,4 +237,5 @@ spec:
                         {name: port, value: 8080}]
     - - name: deploy
         template: deploy
+        # Only deploy if the branch is master.
         when: "'{{workflow.parameters.branch}}' == master"
