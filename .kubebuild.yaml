@@ -238,4 +238,4 @@ spec:
     - - name: deploy
         template: deploy
         # Only deploy if the branch is master.
-        when: when: "'{{workflow.parameters.branch}}' !~ 'feature.*'"
+        when: "'{{workflow.parameters.branch}}' !~ 'feature.*'"
