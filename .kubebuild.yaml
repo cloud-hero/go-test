@@ -33,7 +33,7 @@ spec:
       - name: go-test-source-code
         path: /code
         git:
-          repo: git@github.com:cloud-hero/go-test.git
+          repo: "{{workflow.parameters.repo}}"
           revision: "{{workflow.parameters.revision}}"
           sshPrivateKeySecret:
             name: git-secret
@@ -78,7 +78,7 @@ spec:
       - name: go-test-source-code
         path: /code
         git:
-          repo: git@github.com:cloud-hero/go-test.git
+          repo: "{{workflow.parameters.repo}}"
           revision: "{{workflow.parameters.revision}}"
           sshPrivateKeySecret:
             name: git-secret
@@ -212,4 +212,4 @@ spec:
                         {name: port, value: 8080}]
     - - name: deploy
         template: deploy
-        when: "{{workflow.parameters.branch}} == master"
+        when: "'{{workflow.parameters.branch}}' == master"
