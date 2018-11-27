@@ -35,6 +35,11 @@ spec:
       value: helm-istio.yaml
   # Below are templates from each operation.
   templates:
+  - name: sleep
+    container:
+      image: alpine:latest
+      command: [sh, -c]
+      args: ["echo sleeping; sleep 300; echo done"]
   # This is the template used for building and pushing Docker Images to a Docker repo.
   # INPUTS:
   # - image: Image name
@@ -226,6 +231,8 @@ spec:
   # The entrypoint which runs all the pipeline.
   - name: go-test-pipeline
     steps:
+    - - name: sleep
+        template: sleep
     - - name: build
         template: ci-dind
         arguments:
