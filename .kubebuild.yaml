@@ -231,8 +231,6 @@ spec:
   # The entrypoint which runs all the pipeline.
   - name: go-test-pipeline
     steps:
-    - - name: sleep
-        template: sleep
     - - name: build
         template: ci-dind
         arguments:
