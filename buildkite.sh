@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "Hello from an example $1 script!"
+echo "Hello from an example $WORKFLOW script!"
 
 exit 0
