@@ -1,9 +1,9 @@
 steps:
   - label: ":pipeline: Pipeline upload"
     command: buildkite-agent pipeline upload .buildkite/pipeline_alpha.yml
-    if: build.env(WORKFLOW) == "ALPHA"
+    if: build.env("WORKFLOW") == "ALPHA"
   - label: ":pipeline: Pipeline upload"
     command: buildkite-agent pipeline upload .buildkite/pipeline_Beta.yml
-    if: build.env(WORKFLOW) == "BETA"
+    if: build.env("WORKFLOW") == "BETA"
   - label: ":pipeline: Pipeline upload"
     command: buildkite-agent pipeline upload .buildkite/real_pipeline.yml
