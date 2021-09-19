@@ -1,0 +1,3 @@
+steps:
+  - label: ":hammer: Example Script"
+    command: "buildkite.sh"
