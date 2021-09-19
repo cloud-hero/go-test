@@ -1,5 +1,3 @@
 steps:
-  - label: ":pipeline: Pipeline upload"
-    command: buildkite-agent pipeline upload
   - label: ":hammer: Example Script"
     command: "buildkite.sh"
