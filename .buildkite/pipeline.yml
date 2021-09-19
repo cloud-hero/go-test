@@ -1,2 +1,3 @@
 steps:
-  - command: "echo \"hello\""
+  - label: ":hammer: Example Script"
+    command: "buildkite.sh"
